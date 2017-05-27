@@ -142,7 +142,11 @@ def random_dog(n):
             nom_chien = (w.fetchone())[0]
         dog.append(nom_chien)
         dog.append(randint(1,lenrace))     #ID de la race
-        id_vendeur = randint(1,lenvendeur)
+        hasard = randint(1,10)
+        if hasard <= 4:
+            id_vendeur = randint(1,20)
+        else:
+            id_vendeur = randint(21,lenvendeur)
         c.execute("""SELECT type FROM vendeur WHERE id_vendeur = ?""", (id_vendeur,))
         type_vendeur = (c.fetchone())[0]
         c.execute("""SELECT esp_de_vie FROM race WHERE id_race = ?""", (dog[3],))
@@ -154,7 +158,7 @@ def random_dog(n):
             else:
                 années = randint(1,esp_de_vie//2)
         else:
-            randint(0,esp_de_vie)
+            années = randint(0,esp_de_vie)
         années = str(années)
         #Les chiens venant de la SPA ont plus de chance d'être vieux, ceux venant d'un particulier plus de chance d'être jeunes
         mois = randint(1,11)

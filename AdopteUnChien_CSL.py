@@ -13,6 +13,9 @@ taille_off = 1
 carac_off = 1
 pedigree_off = 1
 prix_off = 1
+ville_off = 1
+region_off = 1
+typevend_off = 1
 
 sexe = 0
 race = ''
@@ -25,6 +28,9 @@ taille_sup = 0
 carac = [0,0,0]
 pedigree = 0
 prix = 0
+ville = ''
+region = ''
+typevend = 0
 
 def affiche_data(legende,données,mise_en_forme,separator,mod):
     """Affiche de facon élégante les données issues d'une recherche dans la base de données.
@@ -88,6 +94,12 @@ def critère_corres(x):
         return 6
     elif x.lower() == 'prix':
         return 7
+    elif x.lower() == 'ville':
+        return 8
+    elif x.lower() == 'region' or x.lower() == 'région':
+        return 9
+    elif x.lower() == 'type de vendeur' or x.lower() == 'type du vendeur':
+        return 10
     else:
         return x
     
@@ -146,6 +158,8 @@ def encadrement_age_text(x):
         return 'chiot'
     elif a==0:
         return '<= '+str(b)+' ans'
+    elif b>28: #Record du monde de longevité d'un chien (RIP Beagle)
+        return '>= '+str(a)+' ans'
     else:
         return 'entre '+str(a)+' et '+str(b)+' ans'
     
@@ -156,6 +170,8 @@ def encadrement_taille_text(x):
         return 'Ø'
     if a==0:
         return '<= '+str(b)+' cm'
+    elif b>112: #Record du monde de taille d'un chien (RIP Zeus)
+        return '>= '+str(a)+' cm'
     else:
         return 'entre '+str(a)+' et '+str(b)+' cm'
     
@@ -182,6 +198,26 @@ def prix_text(x):
         return 'Ø'
     return '<= '+str(x)+'€'
 
+def identité_ville(x):
+    if ville_off == 1:
+        return 'Ø'
+    else:
+        return x
+    
+def identité_region(x):
+    if region_off == 1:
+        return 'Ø'
+    else:
+        return x
+    
+def typevend_text(x):
+    if typevend_off == 1:
+        return 'Ø'
+    elif typevend == 0:
+        return 'SPA'
+    else:
+        return 'Particulier'
+
 #[sexe_text_mod,identité,encadrement_age_text,encadrement_taille_text,type_du_chien_text,pedigree_text_mod,prix_text]
 
 print("■■■■■■■■■■■■■■■■■■■■■■■■■■■")
@@ -204,22 +240,22 @@ print("console en pleine écran")
 
 appli_on = 1
 
-critères = ['Sexe','Race','Age','Taille','Type du chien','pedigree','prix']
+critères = ['Sexe','Race','Age','Taille','Type du chien','Pedigree','Prix','Ville','Région','Type de vendeur']
 menu = []
-for i in range(1,8):
+for i in range(1,11):
     menu.append([i,critères[i-1],0])
 
 while appli_on:
     
-    valeurs = [sexe,race,(age_inf_int,age_sup_int),(taille_inf,taille_sup),carac,pedigree,prix]
-    for i in range(7):
+    valeurs = [sexe,race,(age_inf_int,age_sup_int),(taille_inf,taille_sup),carac,pedigree,prix,ville,region,typevend]
+    for i in range(10):
         menu[i][2] = valeurs[i]
     
     print("\n■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■")
     print("■■■ AdopteUnChien - Menu Principal ■■■")
     print("■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■")
     affiche_data(['','Critères','Valeur choisie'],menu,\
-                 [sexe_text_mod,identité_race,encadrement_age_text,encadrement_taille_text,type_du_chien_text,pedigree_text_mod,prix_text],\
+                 [sexe_text_mod,identité_race,encadrement_age_text,encadrement_taille_text,type_du_chien_text,pedigree_text_mod,prix_text,identité_ville,identité_region,typevend_text],\
                  '|',1)
     print("\nVous pouvez:")
     print("- modifier un critère en tapant son numéro ou son libellé")
@@ -250,19 +286,28 @@ while appli_on:
                     pedigree_off = 1
                 elif delete == 7:
                     prix_off = 1
+                elif delete == 8:
+                    ville_off = 1
+                elif delete == 9:
+                    region_off = 1
+                elif delete == 10:
+                    typevend_off = 1
+                else:
+                    print("ERREUR ! L'entier en argument ne correspond à aucun critère !")
             except ValueError:
-                print("ERREUR ! l'argument de 'del' n'est pas un entier !")
+                print("ERREUR ! L'argument de 'del' n'est pas un entier !")
                 
         elif enter.lower() == 'go':
             enter_exit = 0
             c.execute("""SELECT sexe, nom, nom_race, age, taille, pedigree, prix, nom_vendeur, type, nom_ville FROM chien, \
                       race, vendeur, ville WHERE (sexe = ? OR ?) AND chien.id_race = race.id_race AND \
                       chien.id_vendeur =  vendeur.id_vendeur AND vendeur.id_ville = ville.id_ville AND \
-                      (lower(nom_race) = lower(?) OR ?)AND ((date(?) <= age AND age <= date(?)) OR ?) AND (pedigree = ? or ?)AND(prix <= ? OR ?) AND \
+                      (lower(nom_race) = lower(?) OR ?)AND ((date(?) <= age AND age <= date(?)) OR ?) AND (pedigree = ? OR ?)AND(prix <= ? OR ?) AND \
                       ((? <= taille AND taille <= ?)OR ?) AND \
-                      (((chien_chasse = ? AND ?) OR (chien_garde = ? AND ?) OR (chien_appartement = ? AND ?)) or ?)""", \
+                      (((chien_chasse = ? AND ?) OR (chien_garde = ? AND ?) OR (chien_appartement = ? AND ?)) OR ?) AND \
+                      (lower(nom_ville) = lower(?) OR ?) AND (lower(region) = lower(?) OR ?) AND (lower(type) = lower(?) OR ?)""", \
                       (sexe,sexe_off,race,race_off,age_inf,age_sup,age_off,pedigree,pedigree_off,prix,prix_off,taille_inf,\
-                       taille_sup,taille_off,carac[0],carac[0],carac[1],carac[1],carac[2],carac[2],carac_off))
+                       taille_sup,taille_off,carac[0],carac[0],carac[1],carac[1],carac[2],carac[2],carac_off,ville,ville_off,region,region_off,typevend_text(typevend),typevend_off))
 
             tabres = []
             for r in c:
@@ -276,24 +321,31 @@ while appli_on:
                              tabres,\
                              [sexe_text,identité,identité,age_simplify,taille_cm,pedigree_text,euro,identité,identité,identité],\
                              '|',0)
-            sexe_off = 1
-            race_off = 1
-            age_off = 1
-            taille_off = 1
-            carac_off = 1
-            pedigree_off = 1
-            prix_off = 1
-            print("\nSi vous souhaitez faire une autre recherche, cliquez sur entrée.")
+            
+            print("\nSi vous souhaitez faire une autre recherche...")
+            print("- en conservant vos critères, cliquez sur entrée.")
+            print("- en supprimant vos critères, tapez 'delete'")
             print("Pour quitter, tapez 'exit'")
             end_enter = input()
             if end_enter.lower() == 'exit':
                 appli_on = 0
+            elif end_enter.lower() == 'delete':
+                sexe_off = 1
+                race_off = 1
+                age_off = 1
+                taille_off = 1
+                carac_off = 1
+                pedigree_off = 1
+                prix_off = 1
+                ville_off = 1
+                region_off = 1
+                typevend_off = 1
         
         else:
             enter = critère_corres(enter)
             try:
                 num = int(enter)
-                if num>7 or num<=0:
+                if num>10 or num<=0:
                     print("ERREUR ! Le numéro entrée n'existe pas !")
                 else:
                     enter_exit = 0
@@ -319,18 +371,22 @@ while appli_on:
         while cond:
             print("\nVeuillez rentrer la race desirée:")
             print("(en toute lettre)")
+            print("(Vous pouvez taper 'liste' pour obtenir la liste des races disponibles)")
             race = input()
-            c.execute("""SELECT COUNT(*) FROM race where lower(nom_race) = lower(?)""", (race,))
-            if (c.fetchone())[0] == 0:
-                print("ERREUR ! La race précisée ne fait pas partie de notre base de données, ou est incorrecte !")
+            if race.lower() == 'liste' or race.lower() == 'list':
+                c.execute("""SELECT nom_race FROM race""")
+                print("\n")
+                for r in c:
+                    print(r[0])
             else:
-                cond = False
+                c.execute("""SELECT COUNT(*) FROM race where lower(nom_race) = lower(?)""", (race,))
+                if (c.fetchone())[0] == 0:
+                    print("ERREUR ! La race précisée ne fait pas partie de notre base de données, ou est incorrecte !")
+                else:
+                    cond = False
                 
     elif num == 3:
         age_off = 0
-        c.execute("""SELECT max(esp_de_vie) FROM race""")
-        max_age = (c.fetchone())[0]
-
         cond = True
         while cond:
             print("\nVeuillez rentrer la limite d'age inferieure:")
@@ -340,8 +396,8 @@ while appli_on:
                 age_inf = int(age_inf)
                 if age_inf < 0:
                     print("ERREUR ! L'age entré est strictement négatif !")
-                elif age_inf > max_age:
-                    print("ERREUR ! L'age entré est trop grand pour être réaliste pour un chien !")
+                elif age_inf > 9999:
+                    print("ERREUR ! Vous etes serieux ? Un chien de plus de 10000 ans ?!")
                 else:
                     cond = False
             except ValueError:
@@ -356,8 +412,8 @@ while appli_on:
                 age_sup = int(age_sup)
                 if age_sup < 0:
                     print("ERREUR ! L'age entré est strictement négatif !")
-                elif age_sup > max_age:
-                    print("ERREUR ! L'age entré est trop grand pour être réaliste pour un chien !")
+                elif age_sup > 9999:
+                    print("ERREUR ! Vous etes serieux ? Un chien de plus de 10000 ans ?!")
                 elif age_sup < age_inf:
                     print("ERREUR ! L'age entré est strictement inferieur à la limite inferieure !")
                 else:
@@ -382,8 +438,6 @@ while appli_on:
                 taille_inf = int(taille_inf)
                 if taille_inf < 0:
                     print("ERREUR ! La taille entrée est strictement négative !")
-                elif taille_inf > 112:
-                    print("ERREUR ! Meme le plus grand chien du monde ne fait pas cette taille !")
                 else:
                     cond = False
             except ValueError:
@@ -397,8 +451,6 @@ while appli_on:
                 taille_sup = int(taille_sup)
                 if taille_sup <= 0:
                     print("ERREUR ! La taille entrée est négative ou nulle !")
-                elif taille_sup > 112:
-                    print("ERREUR ! Meme le plus grand chien du monde ne fait pas cette taille !")
                 elif taille_sup < taille_inf:
                     print("ERREUR ! La taille entrée est strictement inferieur à la limite inferieure !")
                 else:
@@ -413,7 +465,7 @@ while appli_on:
             print("\nSouhaitez vous un chien de chasse (tapez 1), de garde (tapez 2) ou d'apppartement (tapez 3) ?")
             carac = input()
             if carac != '1' and carac != '2'  and carac != '3':
-                print("ERREUR ! Le type de chien ne peut valoir que 1, 2 ou 3 !")
+                print("ERREUR ! Le type du chien ne peut valoir que 1, 2 ou 3 !")
             else:
                 cond = False
 
@@ -454,5 +506,69 @@ while appli_on:
                     cond = False
             except ValueError:
                 print("ERREUR ! Le prix entré n'est pas un entier !")
+                
+    elif num == 8:
+        ville_off = 0
+        cond = True
+        while cond:
+            print("\nVeuillez rentrer une ville:")
+            print("(Vous pouvez taper 'liste' pour obtenir la liste des villes disponibles)")
+            ville = input()
+            if ville.lower() == 'liste' or ville.lower() == 'list':
+                c.execute("""SELECT nom_ville FROM ville""")
+                print("\n")
+                for r in c:
+                    print(r[0])
+            else:
+                c.execute("""SELECT COUNT(*) FROM ville where lower(nom_ville) = lower(?)""", (ville,))
+                res_ville_1 = (c.fetchone())[0]
+                c.execute("""SELECT COUNT(*) FROM ville where lower(nom_ville) = lower(?) AND (lower(region) = lower(?) OR ?)""", (ville,region,region_off))
+                res_ville_2 = (c.fetchone())[0]
+                if res_ville_1 == 0:
+                    print("ERREUR ! La ville indiquée ne fait pas partie de notre base de données, ou est incorrecte !")
+                elif res_ville_2 == 0:
+                    print("ERREUR ! Il y incohérence entre vos critères !")
+                    print("La ville n'appartient pas à la région indiquée précedemment !")
+                else:
+                    cond = False
+                
+    elif num == 9:
+        region_off = 0
+        cond = True
+        while cond:
+            print("\nVeuillez rentrer une région:")
+            print("(Nouvelles régions)")
+            print("(Vous pouvez taper 'liste' pour obtenir la liste des régions disponibles)")
+            region = input()
+            if region.lower() == 'liste' or region.lower() == 'list':
+                c.execute("""SELECT DISTINCT region FROM ville""")
+                print("\n")
+                for r in c:
+                    print(r[0])
+            else:
+                c.execute("""SELECT COUNT(*) FROM ville where lower(region) = lower(?)""", (region,))
+                res_region_1 = (c.fetchone())[0]
+                c.execute("""SELECT COUNT(*) FROM ville where lower(region) = lower(?) AND (lower(nom_ville) = lower(?) OR ?)""", (region,ville,ville_off))
+                res_region_2 = (c.fetchone())[0]
+                if res_region_1 == 0:
+                    print("ERREUR ! La région indiquée ne fait pas partie de notre base de données, ou est incorrecte !")
+                elif res_region_2 == 0:
+                    print("ERREUR ! Il y incohérence entre vos critères !")
+                    print("La ville indiquée précedemment n'appartient pas à cette région !")
+                else:
+                    cond = False
+                    
+    elif num == 10:
+        typevend_off = 0
+        cond = True
+        while cond:
+            print("\nVeuillez rentrer le type de vendeur souhaité:")
+            print("(0 pour une SPA, 1 pour un particulier)")
+            typevend = input()
+            if typevend != '0' and typevend !='1':
+                print("ERREUR ! Le type de vendeur ne peut valoir que 0 ou 1 !")
+            else:
+                cond = False
+        typevend = int(typevend)
         
 print("\nA bientot :) !")
