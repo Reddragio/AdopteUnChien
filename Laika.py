@@ -1,5 +1,5 @@
 import sqlite3
-from random import randint, choice
+from random import randint
 
 conn = sqlite3.connect('dogs.db')
 c = conn.cursor()
@@ -33,6 +33,7 @@ c.execute("""CREATE TABLE IF NOT EXISTS ville(id_ville INT, nom_ville VARCHAR(70
 # --> Affiche tous les chiens de plus de 15 ans
 # SELECT * FROM chien WHERE age <= date("0000-11-30");
 # --> Affiche tous les chiots (ie les chiens de moins de 1 an)
+#SELECT * FROM chien WHERE date("0005-01-01") <= age and age <= date("0010-01-01");
 
 def random_particulier(n):
     """Génère aléatoirement n vendeurs particuliers et les ajoute à la base de données"""
