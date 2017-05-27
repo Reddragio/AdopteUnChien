@@ -8,7 +8,7 @@ Python &amp; Sqlite project for school
 La base de données names.db est nécessaire pour son bon fonctionnement
 Le fichier contient 2 principales fonctions:
 - random_particulier(n), qui génère n vendeurs particuliers dans dogs.db
-- random_dog(n), qui génère n vendeurs particuliers dans dogs.db
+- random_dog(n), qui génère n chiens dans dogs.db
 
 --> AdopteUnChien_CSL.py est le coeur du programme. C'est la version console pleinement fonctionnelle de notre projet AdopteUnChien.
 
