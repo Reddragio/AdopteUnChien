@@ -361,12 +361,19 @@ while main_appli_on:
                 elif enter.lower() == 'go':
                     enter_exit = 0
                     c.execute("""SELECT sexe, nom, nom_race, age, taille, pedigree, prix, nom_vendeur, type, nom_ville FROM chien, \
-                              race, vendeur, ville WHERE (sexe = ? OR ?) AND chien.id_race = race.id_race AND \
-                              chien.id_vendeur =  vendeur.id_vendeur AND vendeur.id_ville = ville.id_ville AND \
-                              (lower(nom_race) = lower(?) OR ?)AND ((date(?) <= age AND age <= date(?)) OR ?) AND (pedigree = ? OR ?)AND(prix <= ? OR ?) AND \
-                              ((? <= taille AND taille <= ?)OR ?) AND \
-                              (((chien_chasse = ? AND ?) OR (chien_garde = ? AND ?) OR (chien_appartement = ? AND ?)) OR ?) AND \
-                              (lower(nom_ville) = lower(?) OR ?) AND (lower(region) = lower(?) OR ?) AND (lower(type) = lower(?) OR ?)""", \
+                              race, vendeur, ville \
+                              WHERE chien.id_race = race.id_race AND chien.id_vendeur =  vendeur.id_vendeur \
+                              AND vendeur.id_ville = ville.id_ville \
+                              AND (sexe = ? OR ?) \
+                              AND (lower(nom_race) = lower(?) OR ?) \
+                              AND ((date(?) <= age AND age <= date(?)) OR ?) \
+                              AND (pedigree = ? OR ?) \
+                              AND (prix <= ? OR ?) \
+                              AND ((? <= taille AND taille <= ?) OR ?) \
+                              AND (((chien_chasse = ? AND ?) OR (chien_garde = ? AND ?) OR (chien_appartement = ? AND ?)) OR ?) \
+                              AND (lower(nom_ville) = lower(?) OR ?) \
+                              AND (lower(region) = lower(?) OR ?) \
+                              AND (lower(type) = lower(?) OR ?)""", \
                               (sexe,sexe_off,race,race_off,age_inf,age_sup,age_off,pedigree,pedigree_off,prix,prix_off,taille_inf,\
                                taille_sup,taille_off,carac[0],carac[0],carac[1],carac[1],carac[2],carac[2],carac_off,ville,ville_off,region,region_off,typevend_text(typevend),typevend_off))
         
