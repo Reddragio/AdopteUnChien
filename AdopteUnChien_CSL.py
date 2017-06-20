@@ -4,6 +4,8 @@
 import sqlite3
 from random import randint
 from copy import deepcopy
+from tkinter import *
+from tkinter import messagebox
 
 conn = sqlite3.connect('dogs.db')
 c = conn.cursor()
@@ -114,6 +116,12 @@ def sexe_text(x):
         return 'femelle'
     else:
         return 'mâle'
+        
+def sexe_text_record(x):
+    if x==0:
+        return 'une femelle'
+    else:
+        return 'un mâle'
 
 def age_simplify(x):
     year = int(x[0:4])
@@ -246,6 +254,9 @@ print("\nATTENTION !")
 print("Pour un affichage optimal du programme, merci de passer votre")
 print("console en pleine écran")
 
+print("\nPour continuer, tapez sur entrée.")
+input()
+
 main_appli_on = 1
 while main_appli_on:
     
@@ -360,36 +371,86 @@ while main_appli_on:
                                taille_sup,taille_off,carac[0],carac[0],carac[1],carac[1],carac[2],carac[2],carac_off,ville,ville_off,region,region_off,typevend_text(typevend),typevend_off))
         
                     tabres = []
+                    k = 1
                     for r in c:
-                        tabres.append(list(r))
+                        tabres.append([k]+list(r))
+                        k = k+1
+                        
                     nombre_res = len(tabres)
                     if nombre_res == 0:
                         print("\nMalheuresement, aucun chien ne correspond à vos critères :( ...")
                     else:
                         print("\nVoici les "+str(nombre_res)+" chiens disponibles à l'adoption correspondants à vos critères:")
-                        affiche_data(['Sexe','Nom','Race','Age','Taille','Pedigree','prix','Nom du vendeur','Type','Ville'],\
+                        affiche_data(['Id','Sexe','Nom','Race','Age','Taille','Pedigree','prix','Nom du vendeur','Type','Ville'],\
                                      tabres,\
-                                     [sexe_text,identité,identité,age_simplify,taille_cm,pedigree_text,euro,identité,identité,identité],\
+                                     [identité,sexe_text,identité,identité,age_simplify,taille_cm,pedigree_text,euro,identité,identité,identité],\
                                      '|',0)
                     
-                    print("\nSi vous souhaitez faire une autre recherche...")
-                    print("- en conservant vos critères, cliquez sur entrée.")
-                    print("- en supprimant vos critères, tapez 'delete'")
-                    print("Pour quitter, tapez 'exit'")
-                    end_enter = input()
-                    if end_enter.lower() == 'exit':
-                        appli_on = 0
-                    elif end_enter.lower() == 'delete':
-                        sexe_off = 1
-                        race_off = 1
-                        age_off = 1
-                        taille_off = 1
-                        carac_off = 1
-                        pedigree_off = 1
-                        prix_off = 1
-                        ville_off = 1
-                        region_off = 1
-                        typevend_off = 1
+                    cond_photo = 1
+                    while cond_photo:
+                        print("\nSi vous souhaitez faire une autre recherche...")
+                        print("- en conservant vos critères, cliquez sur entrée.")
+                        print("- en supprimant vos critères, tapez 'delete'")
+                        print("\nSi vous souhaitez voir la photo d'un chien, tapez 'photo %'")
+                        print("où % est à remplacer par l'ID du chien")
+                        print("\nPour quitter, tapez 'exit'")
+                        end_enter = input()
+                        if end_enter.lower() == '':
+                            cond_photo = 0
+                        elif end_enter.lower() == 'exit':
+                            appli_on = 0
+                            cond_photo = 0
+                        elif end_enter.lower() == 'delete':
+                            sexe_off = 1
+                            race_off = 1
+                            age_off = 1
+                            taille_off = 1
+                            carac_off = 1
+                            pedigree_off = 1
+                            prix_off = 1
+                            ville_off = 1
+                            region_off = 1
+                            typevend_off = 1
+                            cond_photo = 0
+                        elif end_enter.lower()[0:5] == 'photo':
+                            id_photo = end_enter[6:]
+                            if id_photo.isdigit() == False:
+                                print("ERREUR! L'argument de 'photo' doit être un entier !")
+                            else:
+                                id_photo = int(id_photo)
+                                if 1 <= id_photo <= len(tabres):
+                                    chien_choisi = tabres[id_photo-1]
+                                    sexe = chien_choisi[1]
+                                    if sexe == 0:
+                                        sexe = 'f'
+                                    else:
+                                        sexe = 'm'
+                                    Race = chien_choisi[3]
+                                    c.execute("""SELECT id_race FROM race WHERE lower(?) = lower(nom_race)""",(Race,))
+                                    id_race_photo = (c.fetchone())[0]
+                                    if id_race_photo <= 33:
+                                        age = chien_choisi[4]
+                                        year = int(age[0:4])
+                                        if year == 0:
+                                            nom_fichier = "Images/"+Race+'_c.png'
+                                        else:    
+                                            nom_fichier = "Images/"+Race+'_'+sexe+'.png'
+                                        print("\n***Pour reprendre le programme, fermez la photo***")
+                                        
+                                        top = Tk()
+                                        C = Canvas(top, bg="blue", height=700, width=1000)
+                                        filename = PhotoImage(file = nom_fichier)
+                                        background_label = Label(top, image=filename)
+                                        background_label.place(x=0, y=0, relwidth=1, relheight=1)
+                                        C.pack()
+                                        top.mainloop()
+                                    else:
+                                        print("\nMalheuresement, il n'existe aucune photo pour ce chien ...")
+                                    
+                                else:
+                                    print("\nERREUR ! L'ID ne correspond à aucun de des chiens listés !")
+                        else:
+                            print("ERREUR ! L'entrée est incorrecte !")
                 
                 else:
                     enter = critère_corres(enter)
@@ -424,7 +485,7 @@ while main_appli_on:
                     print("(Vous pouvez taper 'liste' pour obtenir la liste des races disponibles)")
                     race = input()
                     if race.lower() == 'liste' or race.lower() == 'list':
-                        c.execute("""SELECT nom_race FROM race""")
+                        c.execute("""SELECT nom_race FROM race ORDER BY nom_race ASC""")
                         print("\n")
                         for r in c:
                             print(r[0])
@@ -565,7 +626,7 @@ while main_appli_on:
                     print("(Vous pouvez taper 'liste' pour obtenir la liste des villes disponibles)")
                     ville = input()
                     if ville.lower() == 'liste' or ville.lower() == 'list':
-                        c.execute("""SELECT nom_ville FROM ville""")
+                        c.execute("""SELECT nom_ville FROM ville ORDER BY nom_ville ASC""")
                         print("\n")
                         for r in c:
                             print(r[0])
@@ -591,7 +652,7 @@ while main_appli_on:
                     print("(Vous pouvez taper 'liste' pour obtenir la liste des régions disponibles)")
                     region = input()
                     if region.lower() == 'liste' or region.lower() == 'list':
-                        c.execute("""SELECT DISTINCT region FROM ville""")
+                        c.execute("""SELECT DISTINCT region FROM ville ORDER BY region ASC""")
                         print("\n")
                         for r in c:
                             print(r[0])
@@ -874,8 +935,72 @@ while main_appli_on:
         print("\nFelicitation ! Votre chien est dès à présent disponible à l'adoption sur AdopteUnChien !")
     
     elif main_choix =='3':
-        print("WORK IN PROGRESS !")
-    
+        print("\n■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■")
+        print("■■■■■■■■■ Records d'AdopteUnChien ■■■■■■■■■")
+        print("■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■")
+        
+        c.execute("""SELECT sexe,nom,nom_race,age,min(taille) FROM chien,race where chien.id_race=race.id_race;""")
+        rdata = (c.fetchall())[0]
+        petit = rdata[1]+", "+sexe_text_record(rdata[0])+" "+rdata[2]+" mesurant "+taille_cm(rdata[4])
+        
+        c.execute("""SELECT sexe,nom,nom_race,age,max(taille) FROM chien,race where chien.id_race=race.id_race;""")
+        rdata = (c.fetchall())[0]
+        grand = rdata[1]+", "+sexe_text_record(rdata[0])+" "+rdata[2]+" mesurant "+taille_cm(rdata[4])
+        
+        c.execute("""SELECT sexe,nom,nom_race,min(age) FROM chien,race where chien.id_race=race.id_race;""")
+        rdata = (c.fetchall())[0]
+        jeune = rdata[1]+", "+sexe_text_record(rdata[0])+" "+rdata[2]+" âgé(e) de "+age_simplify(rdata[3])
+        
+        c.execute("""SELECT sexe,nom,nom_race,max(age) FROM chien,race where chien.id_race=race.id_race;""")
+        rdata = (c.fetchall())[0]
+        vieux = rdata[1]+", "+sexe_text_record(rdata[0])+" "+rdata[2]+" âgé(e) de "+age_simplify(rdata[3])
+        
+        c.execute("""SELECT sexe,nom,nom_race,age,min(prix) FROM chien,race where chien.id_race=race.id_race;""")
+        rdata = (c.fetchall())[0]
+        moinscher = rdata[1]+", "+sexe_text_record(rdata[0])+" "+rdata[2]+" avec un prix de "+euro(rdata[4])
+        
+        c.execute("""SELECT sexe,nom,nom_race,age,max(prix) FROM chien,race where chien.id_race=race.id_race;""")
+        rdata = (c.fetchall())[0]
+        pluscher = rdata[1]+", "+sexe_text_record(rdata[0])+" "+rdata[2]+" avec un prix de "+euro(rdata[4])
+        
+        tabrecord = [['Chien le plus petit',petit],\
+                     ['Chien le plus grand',grand],\
+                     ['Chien le plus jeune',jeune],\
+                     ['Chien le plus vieux',vieux],\
+                     ['Chien le moins cher',moinscher],\
+                     ['Chien le plus cher',pluscher]]
+        
+        affiche_data(['Records','Lauréats'],tabrecord,[identité,identité],'|',0)
+        
+        print("\n■■■■■■■ Faits remarquables: ■■■■■■■")
+        
+        c.execute("""SELECT nom,max(nombre) FROM(SELECT nom, count(*) AS nombre FROM chien GROUP BY nom);""")
+        rdata = (c.fetchall())[0]
+        print("\nLe nom le plus populaire est "+rdata[0]+", avec un total de "+str(rdata[1])+" chiens le portant.")
+        
+        c.execute("""SELECT nom_race,max(nombre) FROM(SELECT nom_race, count(*) AS nombre FROM chien,race where chien.id_race=race.id_race GROUP BY nom_race);""")
+        rdata = (c.fetchall())[0]
+        print("\nLa race la plus representée est le "+rdata[0]+", avec un total de "+str(rdata[1])+" chiens.")
+        
+        c.execute("""SELECT nom_race, min(prix_moyen) FROM (SELECT nom_race, AVG(prix) AS prix_moyen FROM chien,race where chien.id_race=race.id_race GROUP BY nom_race);""")
+        rdata = (c.fetchall())[0]
+        print("\nLa race la moins chère est le "+rdata[0]+", avec un prix moyen de "+euro(round(rdata[1],2)))
+        
+        c.execute("""SELECT nom_race, max(prix_moyen) FROM (SELECT nom_race, AVG(prix) AS prix_moyen FROM chien,race where chien.id_race=race.id_race GROUP BY nom_race);""")
+        rdata = (c.fetchall())[0]
+        print("La race la plus chère est le "+rdata[0]+", avec un prix moyen de "+euro(round(rdata[1],2)))
+        
+        c.execute("""SELECT nom_ville,max(nombre) FROM(SELECT nom_ville, count(*) AS nombre FROM chien,vendeur,ville WHERE chien.id_vendeur = vendeur.id_vendeur AND vendeur.id_ville = ville.id_ville GROUP BY nom_ville);""")
+        rdata = (c.fetchall())[0]
+        print("\nLa ville proposant le plus de chiens est "+rdata[0]+", avec un total de "+str(rdata[1])+" chiens disponibles à l'adoption.")
+        
+        c.execute("""SELECT region,max(nombre) FROM(SELECT region, count(*) AS nombre FROM chien,vendeur,ville WHERE chien.id_vendeur = vendeur.id_vendeur AND vendeur.id_ville = ville.id_ville GROUP BY region);""")
+        rdata = (c.fetchall())[0]
+        print("La région "+rdata[0]+" est celle proposant le plus de chiens, avec un total de "+str(rdata[1])+" chiens disponibles à l'adoption.")
+        
+        print("\nPour revenir au menu principal, tapez sur Entrée.")
+        input()
+        
     else:   
         main_appli_on = 0
         

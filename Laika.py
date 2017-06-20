@@ -1,6 +1,9 @@
 import sqlite3
 from random import randint
 
+#Ce programme contient les fonctions nécessaires à la création de la base de données
+#Ces dernières s'utilisent directement dans la console après une première execution du programme
+
 conn = sqlite3.connect('dogs.db')
 c = conn.cursor()
 conn2 = sqlite3.connect('names.db')
